@@ -1,0 +1,1605 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>CX Reply Assistant</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            color: #111827;
+        }
+
+        /* ================= HEADER ================= */
+
+        .header {
+            background: #1f2937;
+            color: white;
+            padding: 18px 30px;
+            font-size: 23px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-subtitle {
+            font-size: 13px;
+            font-weight: normal;
+            opacity: 0.8;
+        }
+
+        /* ================= MAIN CONTAINER ================= */
+
+        .container {
+            display: grid;
+            grid-template-columns: 30% 70%;
+            max-width: 1450px;
+            margin: 30px auto;
+            gap: 20px;
+            padding: 0 20px;
+        }
+
+        /* ================= CARD ================= */
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 22px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 22px;
+        }
+
+        /* ================= CUSTOMER INFO ================= */
+
+        .info {
+            margin-bottom: 18px;
+        }
+
+        .label {
+            font-size: 12px;
+            color: #6b7280;
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+
+        .value {
+            font-size: 16px;
+            margin-top: 5px;
+            word-break: break-word;
+        }
+
+        /* ================= ORDER ================= */
+
+        .order-status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        /* ================= CONVERSATION ================= */
+
+        .conversation-container {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .message {
+            padding: 14px;
+            margin: 12px 0;
+            border-radius: 9px;
+            line-height: 1.5;
+        }
+
+        .customer {
+            background: #eef2ff;
+            border-left: 4px solid #4f46e5;
+        }
+
+        .agent {
+            background: #ecfdf5;
+            border-left: 4px solid #059669;
+        }
+
+        .message-header {
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .message-content {
+            font-size: 15px;
+            white-space: pre-wrap;
+        }
+
+        /* ================= AI REPLY ================= */
+
+        .reply-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .reply-header h2 {
+            margin: 0;
+        }
+
+        .draft-label {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .reply-box {
+            width: 100%;
+            min-height: 220px;
+            padding: 15px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            resize: vertical;
+            font-family: Arial, sans-serif;
+            font-size: 15px;
+            line-height: 1.6;
+            outline: none;
+            background: white;
+        }
+
+        .reply-box:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+        }
+
+        .reply-box[readonly] {
+            background: #f9fafb;
+            cursor: default;
+        }
+
+        /* ================= BUTTONS ================= */
+
+        .button-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        button {
+            border: none;
+            padding: 11px 18px;
+            border-radius: 7px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            transition: opacity 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.85;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .generate {
+            background: #2563eb;
+            color: white;
+        }
+
+        .regenerate {
+            background: #7c3aed;
+            color: white;
+        }
+
+        .edit-button {
+            background: #0891b2;
+            color: white;
+        }
+
+        .save-edit {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .approve {
+            background: #059669;
+            color: white;
+        }
+
+        /* ================= STATUS ================= */
+
+        .status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            display: none;
+        }
+
+        .status.show {
+            display: block;
+        }
+
+        .status.success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status.loading {
+            background: #e0f2fe;
+            color: #075985;
+        }
+
+        /* ================= RESPONSIVE ================= */
+
+        @media (max-width: 900px) {
+
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .header {
+                padding: 15px 20px;
+            }
+
+            .header-subtitle {
+                display: none;
+            }
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<!-- ================= HEADER ================= -->
+
+<div class="header">
+
+    <div>
+        CX Reply Assistant
+    </div>
+
+    <div class="header-subtitle">
+        AI-powered customer support
+    </div>
+
+</div>
+
+
+<!-- ================= MAIN ================= -->
+
+<div class="container">
+
+
+    <!-- ================================================= -->
+    <!-- LEFT SIDE -->
+    <!-- ================================================= -->
+
+    <div>
+
+
+        <!-- ================= CUSTOMER ================= -->
+
+        <div class="card">
+
+            <h2>Customer</h2>
+
+
+            <div class="info">
+
+                <div class="label">
+                    Name
+                </div>
+
+                <div
+                        class="value"
+                        id="customerName">
+                    Loading...
+                </div>
+
+            </div>
+
+
+            <div class="info">
+
+                <div class="label">
+                    Email
+                </div>
+
+                <div
+                        class="value"
+                        id="customerEmail">
+                    Loading...
+                </div>
+
+            </div>
+
+
+            <div class="info">
+
+                <div class="label">
+                    Phone
+                </div>
+
+                <div
+                        class="value"
+                        id="customerPhone">
+                    Loading...
+                </div>
+
+            </div>
+
+
+            <div class="info">
+
+                <div class="label">
+                    Brand
+                </div>
+
+                <div
+                        class="value"
+                        id="brandName">
+                    Loading...
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ================= ORDER ================= -->
+
+        <div class="card">
+
+            <h2>Order</h2>
+
+
+            <div class="info">
+
+                <div class="label">
+                    Order Number
+                </div>
+
+                <div
+                        class="value"
+                        id="orderNumber">
+                    Loading...
+                </div>
+
+            </div>
+
+
+            <div class="info">
+
+                <div class="label">
+                    Product
+                </div>
+
+                <div
+                        class="value"
+                        id="productName">
+                    Loading...
+                </div>
+
+            </div>
+
+
+            <div class="info">
+
+                <div class="label">
+                    Status
+                </div>
+
+                <div
+                        class="value"
+                        id="orderStatus">
+                    Loading...
+                </div>
+
+            </div>
+
+
+            <div class="info">
+
+                <div class="label">
+                    Delivery Date
+                </div>
+
+                <div
+                        class="value"
+                        id="deliveryDate">
+                    Loading...
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================================================= -->
+    <!-- RIGHT SIDE -->
+    <!-- ================================================= -->
+
+    <div>
+
+
+        <!-- ================= CONVERSATION ================= -->
+
+        <div class="card">
+
+            <h2>
+                Conversation
+            </h2>
+
+
+            <div
+                    id="messages"
+                    class="conversation-container">
+
+                Loading conversation...
+
+            </div>
+
+        </div>
+
+
+        <!-- ================= AI REPLY ================= -->
+
+        <div class="card">
+
+            <div class="reply-header">
+
+                <h2>
+                    AI Suggested Reply
+                </h2>
+
+                <div
+                        class="draft-label"
+                        id="draftLabel">
+
+                    No draft
+
+                </div>
+
+            </div>
+
+
+            <textarea
+                    id="replyBox"
+                    class="reply-box"
+                    placeholder="Generate a reply..."
+                    readonly></textarea>
+
+
+            <!-- ================= BUTTONS ================= -->
+
+            <div class="button-container">
+
+
+                <!-- GENERATE -->
+
+                <button
+                        id="generateButton"
+                        class="generate"
+                        onclick="generateReply()">
+
+                    Generate Reply
+
+                </button>
+
+
+                <!-- REGENERATE -->
+
+                <button
+                        id="regenerateButton"
+                        class="regenerate"
+                        onclick="regenerateReply()"
+                        disabled>
+
+                    Regenerate
+
+                </button>
+
+
+                <!-- EDIT -->
+
+                <button
+                        id="editButton"
+                        class="edit-button"
+                        onclick="enableEditing()"
+                        disabled>
+
+                    Edit
+
+                </button>
+
+
+                <!-- SAVE EDIT -->
+
+                <button
+                        id="saveEditButton"
+                        class="save-edit"
+                        onclick="saveEdit()"
+                        disabled>
+
+                    Save Edit
+
+                </button>
+
+
+                <!-- APPROVE -->
+
+                <button
+                        id="approveButton"
+                        class="approve"
+                        onclick="approveReply()"
+                        disabled>
+
+                    Approve
+
+                </button>
+
+            </div>
+
+
+            <!-- ================= STATUS ================= -->
+
+            <div
+                    id="status"
+                    class="status">
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ================================================= -->
+<!-- JAVASCRIPT -->
+<!-- ================================================= -->
+
+<script>
+
+
+    /*
+     * =================================================
+     * CURRENT CONVERSATION
+     * =================================================
+     */
+
+    const conversationId = 1;
+
+
+    /*
+     * =================================================
+     * CURRENT DRAFT
+     * =================================================
+     *
+     * This stores the ID of the draft currently
+     * displayed in the UI.
+     */
+
+    let currentDraftId = null;
+
+
+    /*
+     * =================================================
+     * LOAD CONVERSATION
+     * =================================================
+     */
+
+    async function loadConversation() {
+
+        try {
+
+            setStatus(
+                "Loading conversation...",
+                "loading"
+            );
+
+
+            const response = await fetch(
+                `/api/cx/conversations/${conversationId}`
+            );
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Unable to load conversation"
+                );
+
+            }
+
+
+            const data = await response.json();
+
+
+            /*
+             * CUSTOMER
+             */
+
+            document.getElementById(
+                "customerName"
+            ).textContent =
+                data.customer.name;
+
+
+            document.getElementById(
+                "customerEmail"
+            ).textContent =
+                data.customer.email;
+
+
+            document.getElementById(
+                "customerPhone"
+            ).textContent =
+                data.customer.phone;
+
+
+            /*
+             * BRAND
+             */
+
+            document.getElementById(
+                "brandName"
+            ).textContent =
+                data.brand.name;
+
+
+            /*
+             * ORDER
+             */
+
+            if (data.order) {
+
+                document.getElementById(
+                    "orderNumber"
+                ).textContent =
+                    data.order.orderNumber;
+
+
+                document.getElementById(
+                    "productName"
+                ).textContent =
+                    data.order.productName;
+
+
+                const orderStatus =
+                    document.getElementById(
+                        "orderStatus"
+                    );
+
+
+                orderStatus.textContent =
+                    data.order.status;
+
+
+                orderStatus.className =
+                    "value order-status";
+
+
+                document.getElementById(
+                    "deliveryDate"
+                ).textContent =
+                    data.order.deliveryDate;
+
+            } else {
+
+                document.getElementById(
+                    "orderNumber"
+                ).textContent =
+                    "No order information";
+
+
+                document.getElementById(
+                    "productName"
+                ).textContent =
+                    "-";
+
+
+                document.getElementById(
+                    "orderStatus"
+                ).textContent =
+                    "-";
+
+
+                document.getElementById(
+                    "deliveryDate"
+                ).textContent =
+                    "-";
+
+            }
+
+
+            /*
+             * CONVERSATION MESSAGES
+             */
+
+            const messagesContainer =
+                document.getElementById(
+                    "messages"
+                );
+
+
+            messagesContainer.innerHTML = "";
+
+
+            if (!data.messages ||
+                data.messages.length === 0) {
+
+                messagesContainer.textContent =
+                    "No conversation messages.";
+
+                return;
+
+            }
+
+
+            data.messages.forEach(
+                message => {
+
+                    const div =
+                        document.createElement(
+                            "div"
+                        );
+
+
+                    const isCustomer =
+                        message.senderType
+                            .toUpperCase() ===
+                        "CUSTOMER";
+
+
+                    div.className =
+                        "message " +
+                        (
+                            isCustomer
+                                ? "customer"
+                                : "agent"
+                        );
+
+
+                    div.innerHTML = `
+
+                        <div class="message-header">
+                            ${escapeHtml(message.senderType)}
+                        </div>
+
+                        <div class="message-content">
+                            ${escapeHtml(message.content)}
+                        </div>
+
+                    `;
+
+
+                    messagesContainer.appendChild(
+                        div
+                    );
+
+                }
+            );
+
+
+            setStatus(
+                "Conversation loaded.",
+                "success"
+            );
+
+
+        } catch (error) {
+
+            console.error(error);
+
+
+            setStatus(
+                "Failed to load conversation.",
+                "error"
+            );
+
+        }
+
+    }
+
+
+    /*
+     * =================================================
+     * GENERATE REPLY
+     * =================================================
+     */
+
+    async function generateReply() {
+
+        try {
+
+            disableButtons();
+
+
+            setStatus(
+                "Generating AI reply...",
+                "loading"
+            );
+
+
+            const response =
+                await fetch(
+                    `/api/ai/reply/${conversationId}`
+                );
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "AI generation failed"
+                );
+
+            }
+
+
+            const data =
+                await response.json();
+
+
+            /*
+             * Save current draft ID.
+             */
+
+            currentDraftId =
+                data.draftId;
+
+
+            /*
+             * Display generated response.
+             */
+
+            document.getElementById(
+                "replyBox"
+            ).value =
+                data.response;
+
+
+            /*
+             * Keep generated response read-only
+             * until Edit is clicked.
+             */
+
+            document.getElementById(
+                "replyBox"
+            ).setAttribute(
+                "readonly",
+                "readonly"
+            );
+
+
+            /*
+             * Update draft label.
+             */
+
+            document.getElementById(
+                "draftLabel"
+            ).textContent =
+                "Draft #" +
+                currentDraftId +
+                " • GENERATED";
+
+
+            enableButtons();
+
+
+            setStatus(
+                "AI reply generated successfully.",
+                "success"
+            );
+
+
+        } catch (error) {
+
+            console.error(error);
+
+
+            enableButtons();
+
+
+            setStatus(
+                "Failed to generate AI reply.",
+                "error"
+            );
+
+        }
+
+    }
+
+
+    /*
+     * =================================================
+     * REGENERATE REPLY
+     * =================================================
+     */
+
+    async function regenerateReply() {
+
+        try {
+
+            disableButtons();
+
+
+            setStatus(
+                "Regenerating AI reply...",
+                "loading"
+            );
+
+
+            const response =
+                await fetch(
+                    `/api/ai/reply/${conversationId}/regenerate`,
+                    {
+                        method: "POST"
+                    }
+                );
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Regeneration failed"
+                );
+
+            }
+
+
+            const data =
+                await response.json();
+
+
+            /*
+             * Regeneration creates a NEW draft.
+             */
+
+            currentDraftId =
+                data.draftId;
+
+
+            document.getElementById(
+                "replyBox"
+            ).value =
+                data.response;
+
+
+            document.getElementById(
+                "replyBox"
+            ).setAttribute(
+                "readonly",
+                "readonly"
+            );
+
+
+            document.getElementById(
+                "draftLabel"
+            ).textContent =
+                "Draft #" +
+                currentDraftId +
+                " • GENERATED";
+
+
+            enableButtons();
+
+
+            setStatus(
+                "New AI reply generated.",
+                "success"
+            );
+
+
+        } catch (error) {
+
+            console.error(error);
+
+
+            enableButtons();
+
+
+            setStatus(
+                "Failed to regenerate reply.",
+                "error"
+            );
+
+        }
+
+    }
+
+
+    /*
+     * =================================================
+     * ENABLE EDITING
+     * =================================================
+     */
+
+    function enableEditing() {
+
+        if (!currentDraftId) {
+
+            setStatus(
+                "Generate a reply first.",
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        const replyBox =
+            document.getElementById(
+                "replyBox"
+            );
+
+
+        /*
+         * Remove readonly.
+         */
+
+        replyBox.removeAttribute(
+            "readonly"
+        );
+
+
+        /*
+         * Put cursor inside textarea.
+         */
+
+        replyBox.focus();
+
+
+        /*
+         * Edit button becomes disabled.
+         */
+
+        document.getElementById(
+            "editButton"
+        ).disabled = true;
+
+
+        /*
+         * Save Edit becomes enabled.
+         */
+
+        document.getElementById(
+            "saveEditButton"
+        ).disabled = false;
+
+
+        /*
+         * Don't approve while editing.
+         */
+
+        document.getElementById(
+            "approveButton"
+        ).disabled = true;
+
+
+        setStatus(
+            "Edit mode enabled. Modify the reply and click Save Edit.",
+            "loading"
+        );
+
+    }
+
+
+    /*
+     * =================================================
+     * SAVE EDIT
+     * =================================================
+     */
+
+    async function saveEdit() {
+
+        try {
+
+            if (!currentDraftId) {
+
+                setStatus(
+                    "Generate a reply first.",
+                    "error"
+                );
+
+                return;
+
+            }
+
+
+            const editedResponse =
+                document.getElementById(
+                    "replyBox"
+                ).value.trim();
+
+
+            if (!editedResponse) {
+
+                setStatus(
+                    "Reply cannot be empty.",
+                    "error"
+                );
+
+                return;
+
+            }
+
+
+            document.getElementById(
+                "saveEditButton"
+            ).disabled = true;
+
+
+            setStatus(
+                "Saving edited reply...",
+                "loading"
+            );
+
+
+            const response =
+                await fetch(
+                    `/api/replies/${currentDraftId}`,
+                    {
+                        method: "PUT",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body: JSON.stringify({
+                            editedResponse:
+                            editedResponse
+                        })
+                    }
+                );
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Failed to save edit"
+                );
+
+            }
+
+
+            const data =
+                await response.json();
+
+
+            /*
+             * Keep the draft ID.
+             */
+
+            currentDraftId =
+                data.id;
+
+
+            /*
+             * Lock textarea again.
+             */
+
+            document.getElementById(
+                "replyBox"
+            ).setAttribute(
+                "readonly",
+                "readonly"
+            );
+
+
+            /*
+             * Update status label.
+             */
+
+            document.getElementById(
+                "draftLabel"
+            ).textContent =
+                "Draft #" +
+                currentDraftId +
+                " • EDITED";
+
+
+            /*
+             * Enable correct buttons.
+             */
+
+            document.getElementById(
+                "generateButton"
+            ).disabled = false;
+
+
+            document.getElementById(
+                "regenerateButton"
+            ).disabled = false;
+
+
+            document.getElementById(
+                "editButton"
+            ).disabled = false;
+
+
+            document.getElementById(
+                "saveEditButton"
+            ).disabled = true;
+
+
+            document.getElementById(
+                "approveButton"
+            ).disabled = false;
+
+
+            setStatus(
+                "Edited reply saved successfully.",
+                "success"
+            );
+
+
+        } catch (error) {
+
+            console.error(error);
+
+
+            document.getElementById(
+                "saveEditButton"
+            ).disabled = false;
+
+
+            setStatus(
+                "Failed to save edited reply.",
+                "error"
+            );
+
+        }
+
+    }
+
+
+    /*
+     * =================================================
+     * APPROVE REPLY
+     * =================================================
+     */
+
+    async function approveReply() {
+
+        try {
+
+            if (!currentDraftId) {
+
+                setStatus(
+                    "Generate a reply first.",
+                    "error"
+                );
+
+                return;
+
+            }
+
+
+            disableButtons();
+
+
+            setStatus(
+                "Approving reply...",
+                "loading"
+            );
+
+
+            const response =
+                await fetch(
+                    `/api/replies/${currentDraftId}/approve`,
+                    {
+                        method: "POST"
+                    }
+                );
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Approval failed"
+                );
+
+            }
+
+
+            const data =
+                await response.json();
+
+
+            /*
+             * Display final approved response.
+             */
+
+            document.getElementById(
+                "replyBox"
+            ).value =
+                data.finalResponse;
+
+
+            /*
+             * Keep approved response read-only.
+             */
+
+            document.getElementById(
+                "replyBox"
+            ).setAttribute(
+                "readonly",
+                "readonly"
+            );
+
+
+            /*
+             * Update draft label.
+             */
+
+            document.getElementById(
+                "draftLabel"
+            ).textContent =
+                "Draft #" +
+                data.id +
+                " • APPROVED";
+
+
+            /*
+             * After approval:
+             *
+             * Generate       enabled
+             * Regenerate     enabled
+             * Edit           enabled
+             * Save Edit      disabled
+             * Approve        disabled
+             */
+
+            document.getElementById(
+                "generateButton"
+            ).disabled = false;
+
+
+            document.getElementById(
+                "regenerateButton"
+            ).disabled = false;
+
+
+            document.getElementById(
+                "editButton"
+            ).disabled = false;
+
+
+            document.getElementById(
+                "saveEditButton"
+            ).disabled = true;
+
+
+            document.getElementById(
+                "approveButton"
+            ).disabled = true;
+
+
+            setStatus(
+                "Reply approved successfully.",
+                "success"
+            );
+
+
+        } catch (error) {
+
+            console.error(error);
+
+
+            enableButtons();
+
+
+            setStatus(
+                "Failed to approve reply.",
+                "error"
+            );
+
+        }
+
+    }
+
+
+    /*
+     * =================================================
+     * DISABLE BUTTONS
+     * =================================================
+     */
+
+    function disableButtons() {
+
+        document.getElementById(
+            "generateButton"
+        ).disabled = true;
+
+
+        document.getElementById(
+            "regenerateButton"
+        ).disabled = true;
+
+
+        document.getElementById(
+            "editButton"
+        ).disabled = true;
+
+
+        document.getElementById(
+            "saveEditButton"
+        ).disabled = true;
+
+
+        document.getElementById(
+            "approveButton"
+        ).disabled = true;
+
+    }
+
+
+    /*
+     * =================================================
+     * ENABLE BUTTONS
+     * =================================================
+     */
+
+    function enableButtons() {
+
+        /*
+         * Generate is always available.
+         */
+
+        document.getElementById(
+            "generateButton"
+        ).disabled = false;
+
+
+        const hasDraft =
+            currentDraftId !== null;
+
+
+        /*
+         * Regenerate requires a draft.
+         */
+
+        document.getElementById(
+            "regenerateButton"
+        ).disabled =
+            !hasDraft;
+
+
+        /*
+         * Edit requires a draft.
+         */
+
+        document.getElementById(
+            "editButton"
+        ).disabled =
+            !hasDraft;
+
+
+        /*
+         * Save Edit is enabled ONLY
+         * after Edit is clicked.
+         */
+
+        document.getElementById(
+            "saveEditButton"
+        ).disabled = true;
+
+
+        /*
+         * Approve requires a draft.
+         */
+
+        document.getElementById(
+            "approveButton"
+        ).disabled =
+            !hasDraft;
+
+    }
+
+
+    /*
+     * =================================================
+     * STATUS MESSAGE
+     * =================================================
+     */
+
+    function setStatus(
+        message,
+        type
+    ) {
+
+        const status =
+            document.getElementById(
+                "status"
+            );
+
+
+        status.textContent =
+            message;
+
+
+        status.className =
+            "status show " +
+            type;
+
+    }
+
+
+    /*
+     * =================================================
+     * HTML ESCAPING
+     * =================================================
+     *
+     * Prevents conversation messages from being
+     * interpreted as HTML.
+     */
+
+    function escapeHtml(value) {
+
+        const div =
+            document.createElement(
+                "div"
+            );
+
+
+        div.textContent =
+            value ?? "";
+
+
+        return div.innerHTML;
+
+    }
+
+
+    /*
+     * =================================================
+     * INITIAL LOAD
+     * =================================================
+     */
+
+    loadConversation();
+
+</script>
+
+
+</body>
+
+</html>
